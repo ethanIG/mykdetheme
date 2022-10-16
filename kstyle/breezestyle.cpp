@@ -5456,7 +5456,7 @@ bool Style::drawProgressBarContentsControl(const QStyleOption *option, QPainter 
 
         auto contentsColor(option->state.testFlag(QStyle::State_Selected) ? palette.color(QPalette::HighlightedText) : palette.color(QPalette::Highlight));
 
-        _helper->renderProgressBarGroove(painter, rect, contentsColor, palette.color(QPalette::Window));
+        _helper->renderProgressBarGroove(painter, rect, contentsColor, contentsColor);
         painter->setClipRegion(oldClipRegion);
     }
 
@@ -5467,8 +5467,8 @@ bool Style::drawProgressBarContentsControl(const QStyleOption *option, QPainter 
 bool Style::drawProgressBarGrooveControl(const QStyleOption *option, QPainter *painter, const QWidget *) const
 {
     const auto &palette(option->palette);
-    const auto color(_helper->alphaColor(palette.color(QPalette::WindowText), 0.2));
-    _helper->renderProgressBarGroove(painter, option->rect, color, palette.color(QPalette::Window));
+    const auto color = _helper->frameOutlineColor(palette);
+    _helper->renderProgressBarGroove(painter, option->rect, color, color);
     return true;
 }
 
@@ -6959,10 +6959,11 @@ bool Style::drawSliderComplexControl(const QStyleOptionComplex *option, QPainter
     if (sliderOption->subControls & SC_SliderGroove) {
         // retrieve groove rect
         auto grooveRect(subControlRect(CC_Slider, sliderOption, SC_SliderGroove, widget));
+        grooveRect.adjust(0, 1, 0, -1);
 
         // base color  COMMENT
         //const auto grooveColor(_helper->alphaColor(palette.color(QPalette::WindowText), 0.2));
-        const auto grooveColor(_helper->alphaColor(palette.color(QPalette::WindowText), 0.2));
+        const auto grooveColor(_helper->frameOutlineColor(palette));
 
         if (!enabled)
             _helper->renderSliderGroove(painter, grooveRect, grooveColor);
@@ -7016,9 +7017,10 @@ bool Style::drawSliderComplexControl(const QStyleOptionComplex *option, QPainter
         const qreal opacity(_animations->widgetStateEngine().buttonOpacity(widget));
 
         // define colors
-        const auto &background = palette.color(QPalette::Button);
+        const auto &background = palette.color(QPalette::ButtonText);
         auto outline(_helper->sliderHandleColor(palette, handleActive && mouseOver, hasFocus, opacity, mode));
         if (hasFocus || (handleActive && mouseOver)) {
+            handleRect.adjust(2, 2, -2, -2);
             outline = hasHighlightNeutral(widget, option, handleActive && mouseOver, hasFocus)
                 ? _helper->neutralText(palette).lighter(mouseOver || hasFocus ? 150 : 100)
                 : outline;
@@ -7026,7 +7028,7 @@ bool Style::drawSliderComplexControl(const QStyleOptionComplex *option, QPainter
         const auto shadow(_helper->shadowColor(palette));
 
         // render
-        _helper->renderSliderHandle(painter, handleRect, background, outline, shadow, sunken);
+        _helper->renderSliderHandle(painter, handleRect, outline, outline, shadow, sunken);
     }
 
     return true;

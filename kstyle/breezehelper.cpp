@@ -780,7 +780,7 @@ void Helper::renderCheckBoxBackground(QPainter *painter,
                                       const QRect &rect,
                                       const QPalette &palette,
                                       CheckBoxState state,
-                                      bool neutalHighlight,
+                                      bool neutralHighlight,
                                       bool sunken,
                                       qreal animation) const
 {
@@ -792,16 +792,16 @@ void Helper::renderCheckBoxBackground(QPainter *painter,
     frameRect.adjust(2, 2, -2, -2);
     frameRect = strokedRect(frameRect);
 
-    auto transparent = neutalHighlight ? neutralText(palette) : palette.highlight().color();
+    auto transparent = neutralHighlight ? neutralText(palette) : palette.highlight().color();
     transparent.setAlphaF(highlightBackgroundAlpha);
 
     QBrush penBrush;
-    if (neutalHighlight) {
+    if (neutralHighlight) {
         penBrush = neutralText(palette);
     } else if (state == CheckOn || state == CheckPartial) {
-        penBrush = palette.highlight().color();
+        penBrush = palette.color(QPalette::Highlight);
     } else {
-        penBrush = transparentize(palette.text().color(), highlightBackgroundAlpha);
+        penBrush = frameOutlineColor(palette);
     }
     painter->setPen(QPen(penBrush, PenWidth::Frame));
 
@@ -836,7 +836,7 @@ void Helper::renderCheckBox(QPainter *painter,
                             bool mouseOver,
                             CheckBoxState state,
                             CheckBoxState target,
-                            bool neutalHighlight,
+                            bool neutralHighlight,
                             bool sunken,
                             qreal animation,
                             qreal hoverAnimation) const
@@ -857,7 +857,7 @@ void Helper::renderCheckBox(QPainter *painter,
             painter->setOpacity(hoverAnimation);
         }
 
-        painter->setPen(QPen(neutalHighlight ? neutralText(palette).lighter() : focusColor(palette), PenWidth::Frame));
+        painter->setPen(QPen(neutralHighlight ? neutralText(palette).lighter() : focusColor(palette), PenWidth::Frame));
         painter->setBrush(Qt::NoBrush);
 
         painter->drawRoundedRect(frameRect.adjusted(0.5, 0.5, -0.5, -0.5), Metrics::CheckBox_Radius, Metrics::CheckBox_Radius);
@@ -937,7 +937,7 @@ void Helper::renderRadioButtonBackground(QPainter *painter,
                                          const QRect &rect,
                                          const QPalette &palette,
                                          RadioButtonState state,
-                                         bool neutalHighlight,
+                                         bool neutralHighlight,
                                          bool sunken,
                                          qreal animation) const
 {
@@ -949,22 +949,22 @@ void Helper::renderRadioButtonBackground(QPainter *painter,
     frameRect.adjust(2, 2, -2, -2);
     frameRect.adjust(0.5, 0.5, -0.5, -0.5);
 
-    auto transparent = neutalHighlight ? neutralText(palette) : palette.highlight().color();
+    auto transparent = neutralHighlight ? neutralText(palette) : palette.highlight().color();
     transparent.setAlphaF(highlightBackgroundAlpha);
 
     QBrush penBrush;
-    if (neutalHighlight) {
+    if (neutralHighlight) {
         penBrush = neutralText(palette);
     } else if (state == RadioOn) {
         penBrush = palette.highlight().color();
     } else {
-        penBrush = transparentize(palette.text().color(), highlightBackgroundAlpha);
+        penBrush = frameOutlineColor(palette);
     }
     painter->setPen(QPen(penBrush, PenWidth::Frame));
 
     switch (state) {
     case RadioOff:
-        painter->setBrush(palette.base().color().darker(sunken ? radioCheckSunkenDarkeningFactor : 100));
+        painter->setBrush(sunken ? QColor(255, 0, 255) : palette.color(QPalette::Window));
         painter->drawEllipse(frameRect);
         break;
     case RadioOn:
@@ -1055,10 +1055,7 @@ void Helper::renderSliderGroove(QPainter *painter, const QRect &rect, const QCol
     // content
     if (color.isValid()) {
         painter->setPen(QPen(color, PenWidth::Frame));
-        auto bg = color;
-        //COMMENT
-        bg.setAlphaF(0);
-        painter->setBrush(bg);
+        painter->setBrush(color);
         painter->drawRoundedRect(baseRect, radius, radius);
     }
 }
@@ -1102,7 +1099,7 @@ void Helper::renderSliderHandle(QPainter *painter, const QRect &rect, const QCol
 
     // copy rect
     QRectF frameRect(rect);
-    frameRect.adjust(1, 1, -1, -1);
+    // frameRect.adjust(1,1,-2,-2);
 
     // shadow
     if (!sunken) {
